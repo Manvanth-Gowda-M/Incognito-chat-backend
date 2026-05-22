@@ -18,14 +18,17 @@ const httpServer = createServer(app);
 const allowedOrigins = [
   "http://localhost:3000",
   process.env.FRONTEND_URL || ""
-].filter(Boolean);
+]
+  .map(url => url.trim().replace(/\/$/, ""))
+  .filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    const cleanOrigin = origin ? origin.trim().replace(/\/$/, "") : "";
+    if (!origin || allowedOrigins.includes(cleanOrigin)) {
       callback(null, true);
     } else {
-      callback(new Error("CORS policy violation: request origin not white-listed."));
+      callback(new Error(`CORS policy violation: request origin ${origin} not white-listed.`));
     }
   },
   credentials: true
