@@ -128,6 +128,24 @@ export function registerSocketHandlers(io: Server) {
       }
     });
 
+    // Relay encrypted emoji reactions (server never decodes payload)
+    socket.on("send-reaction", ({ roomId, messageId, encryptedEmoji, iv }: {
+      roomId: string;
+      messageId: string;
+      encryptedEmoji: string;
+      iv: string;
+    }) => {
+      if (!roomId || !messageId || !encryptedEmoji || !iv) return;
+      if (socket.rooms.has(roomId)) {
+        socket.to(roomId).emit("message-reaction", {
+          senderId: socket.id,
+          messageId,
+          encryptedEmoji,
+          iv,
+        });
+      }
+    });
+
     // Handle explicit room exit
     socket.on("leave-room", ({ roomId }: { roomId: string }) => {
       if (socket.rooms.has(roomId)) {
